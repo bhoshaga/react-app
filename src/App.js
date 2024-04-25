@@ -11,7 +11,7 @@ const App = () => {
   }, []);
 
   const fetchUserInfo = () => {
-    axios.get('http://127.0.0.1:5000/user_info', { withCredentials: true })
+    axios.get('https://api.stru.ai/user_info', { withCredentials: true })
       .then(response => {
         setUserInfo(response.data);
         setIsLoading(false);
@@ -23,7 +23,7 @@ const App = () => {
   };
 
   const handleGenerateHaiku = () => {
-    axios.get('http://127.0.0.1:5000/gen_haiku', { withCredentials: true })
+    axios.get('https://api.stru.ai/gen_haiku', { withCredentials: true })
       .then(response => {
         const newHaiku = response.data.haiku;
         setHaikus(prevHaikus => [...prevHaikus, newHaiku]);
@@ -34,7 +34,7 @@ const App = () => {
   };
 
   const handleLogout = () => {
-    axios.get('http://127.0.0.1:5000/logout', { withCredentials: true })
+    axios.get('https://api.stru.ai/logout', { withCredentials: true })
       .then(() => {
         setUserInfo(null);
       })
@@ -44,7 +44,7 @@ const App = () => {
   };
 
   const handleLogin = () => {
-    window.location.href = 'http://127.0.0.1:5000/login';
+    window.location.href = 'https://api.stru.ai/login';
   };
 
   if (isLoading) {
@@ -77,6 +77,7 @@ const App = () => {
 };
 
 export default App;
+
 
 
 
