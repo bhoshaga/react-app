@@ -17,8 +17,14 @@ const App = () => {
         setIsLoading(false);
       })
       .catch(error => {
-        console.error('Error fetching user info:', error);
-        setIsLoading(false);
+        if (error.response && error.response.status === 401) {
+          // Handle unauthorized error
+          setUserInfo(null);
+          setIsLoading(false);
+        } else {
+          console.error('Error fetching user info:', error);
+          setIsLoading(false);
+        }
       });
   };
 
@@ -62,7 +68,7 @@ const App = () => {
       {userInfo ? (
         <div>
           <h2>Hi {userInfo.given_name},</h2>
-          <p>Email: {userInfo.email}</p>
+          <p>{userInfo.email}</p>
           <img src={userInfo.picture} alt="User" style={{ borderRadius: '50%', width: '100px', height: '100px' }} />
           <button onClick={handleGenerateHaiku}>Generate Haiku</button>
           <ul>
