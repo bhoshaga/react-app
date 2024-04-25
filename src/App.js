@@ -48,7 +48,12 @@ const App = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div>
+        <h1>Loading...</h1>
+        <progress />
+      </div>
+    );
   }
 
   return (
@@ -56,7 +61,8 @@ const App = () => {
       <h1>App Page</h1>
       {userInfo ? (
         <div>
-          <h2>Hello, {userInfo.given_name}!</h2>
+          <h2>Hi {userInfo.given_name},</h2>
+          <p>Email: {userInfo.email}</p>
           <img src={userInfo.picture} alt="User" style={{ borderRadius: '50%', width: '100px', height: '100px' }} />
           <button onClick={handleGenerateHaiku}>Generate Haiku</button>
           <ul>
