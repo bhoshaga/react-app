@@ -36,7 +36,7 @@ const App = () => {
   const handleLogout = () => {
     axios.get('https://api.stru.ai/logout')
       .then(() => {
-        window.location.href = 'http://localhost:3000';
+        window.location.href = 'https://haikulanding.netlify.app';
       })
       .catch(error => {
         console.error('Error logging out:', error);
