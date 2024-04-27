@@ -1,14 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const App = () => {
-  const [haikus, setHaikus] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     fetchUserInfo();
   }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const fetchUserInfo = () => {
     axios.get('https://api.stru.ai/user_info', { withCredentials: true })
@@ -18,7 +28,6 @@ const App = () => {
       })
       .catch(error => {
         if (error.response && error.response.status === 401) {
-          // Handle unauthorized error
           setUserInfo(null);
           setIsLoading(false);
         } else {
@@ -28,17 +37,50 @@ const App = () => {
       });
   };
 
-  const handleGenerateHaiku = () => {
-    axios.get('https://api.stru.ai/gen_haiku', { withCredentials: true })
-      .then(response => {
-        const newHaiku = response.data.haiku;
-        setHaikus(prevHaikus => [...prevHaikus, newHaiku]);
-      })
-      .catch(error => {
-        console.error('Error generating haiku:', error);
-      });
-  };
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!input.trim()) return;
 
+    const userMessage = { text: input, sender: 'User' };
+    setMessages(messages => [...messages, userMessage]);
+    setInput('');
+
+    const response = await fetch('https://api.stru.ai/v1/completion', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        "userID": `${userInfo.email}`,
+        "sessionID": "93848bcf-0676-491e-8801-0861585c7d3e",
+        "message": input
+      }),
+      credentials: 'include',
+    });
+
+    let receivedText = '';
+    const reader = response.body.getReader();
+    const processText = async ({ done, value }) => {
+      if (done) return;
+      
+      const chunk = new TextDecoder("utf-8").decode(value);
+      receivedText += chunk;
+      setMessages(messages => {
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage.sender === 'Assistant') {
+          return [
+            ...messages.slice(0, -1),
+            { ...lastMessage, text: lastMessage.text + chunk },
+          ];
+        } else {
+          return [...messages, { text: chunk, sender: 'Assistant' }];  
+        }
+      });
+      reader.read().then(processText);
+    };
+    reader.read().then(processText);
+  };
+  
   const handleLogout = () => {
     axios.get('https://api.stru.ai/logout', { withCredentials: true })
       .then(() => {
@@ -63,124 +105,58 @@ const App = () => {
   }
 
   return (
-    <div>
-      <h1>App Page</h1>
+    <div className="chat-container">
       {userInfo ? (
-        <div>
-          <h2>Hi {userInfo.given_name},</h2>
-          <p>{userInfo.email}</p>
-          <img src={userInfo.picture} alt="User" style={{ borderRadius: '50%', width: '100px', height: '100px' }} />
-          <button onClick={handleGenerateHaiku}>Generate Haiku</button>
-          <ul>
-            {haikus.map((haiku, index) => (
-              <li key={index}>{haiku}</li>
+        <>
+          <div className="messages">
+            {messages.map((msg, index) => (
+              <div key={index} className={`message ${msg.sender}`}>
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    code({node, inline, className, children, ...props}) {
+                      const match = /language-(\w+)/.exec(className || '')
+                      return !inline && match ? (
+                        <SyntaxHighlighter
+                          children={String(children).replace(/\n$/, '')}
+                          style={vscDarkPlus}
+                          language={match[1]}
+                          PreTag="div"
+                          {...props}
+                        />
+                      ) : (
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      )
+                    }
+                  }}
+                >
+                  {msg.text}
+                </ReactMarkdown>
+              </div>
             ))}
-          </ul>
+            <div ref={messagesEndRef} />
+          </div>
+          <form onSubmit={handleSendMessage}>
+            <input 
+              type="text"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder="Type a message..."
+            />
+            <button type="submit">Send</button>
+          </form>
           <button onClick={handleLogout}>Logout</button>
-        </div>
+        </>
       ) : (
-        <div>
-          <p>Please log in to access the app.</p>
-          <button onClick={handleLogin}>Login with Google</button>
-        </div>
+        <>
+          <p>Please login to chat.</p>
+          <button onClick={handleLogin}>Login with Google</button>  
+        </>
       )}
     </div>
   );
 };
 
 export default App;
-
-
-
-
-
-
-
-
-
-
-
-// import React, { useState, useEffect } from 'react';
-// import axios from 'axios';
-
-// const App = () => {
-//   const [haikus, setHaikus] = useState([]);
-//   const [userInfo, setUserInfo] = useState(null);
-
-//   useEffect(() => {
-//     const urlParams = new URLSearchParams(window.location.search);
-//     const token = urlParams.get('token');
-
-//     if (token) {
-//       localStorage.setItem('token', token);
-//       window.history.replaceState({}, document.title, window.location.pathname);
-//     }
-
-//     fetchUserInfo();
-//   }, []);
-
-//   const fetchUserInfo = () => {
-//     const token = localStorage.getItem('token');
-
-//     if (token) {
-//       axios.get('https://api.stru.ai/user_info', {
-//         headers: {
-//           Authorization: `Bearer ${token}`
-//         }
-//       })
-//         .then(response => {
-//           setUserInfo(response.data);
-//         })
-//         .catch(error => {
-//           console.error('Error fetching user info:', error);
-//         });
-//     }
-//   };
-
-//   const handleGenerateHaiku = () => {
-//     const token = localStorage.getItem('token');
-
-//     if (token) {
-//       axios.get('https://api.stru.ai/gen_haiku', {
-//         headers: {
-//           Authorization: `Bearer ${token}`
-//         }
-//       })
-//         .then(response => {
-//           const newHaiku = response.data.haiku;
-//           setHaikus(prevHaikus => [...prevHaikus, newHaiku]);
-//         })
-//         .catch(error => {
-//           console.error('Error generating haiku:', error);
-//         });
-//     }
-//   };
-
-//   const handleLogout = () => {
-//     localStorage.removeItem('token');
-//     window.location.href = 'https://haikulanding.netlify.app';
-//   };
-
-//   return (
-//     <div>
-//       <h1>App Page</h1>
-//       {userInfo ? (
-//         <div>
-//           <h2>Hello, {userInfo.given_name}!</h2>
-//           <img src={userInfo.picture} alt="User" style={{ borderRadius: '50%', width: '100px', height: '100px' }} />
-//           <button onClick={handleGenerateHaiku}>Generate Haiku</button>
-//           <ul>
-//             {haikus.map((haiku, index) => (
-//               <li key={index}>{haiku}</li>
-//             ))}
-//           </ul>
-//           <button onClick={handleLogout}>Logout</button>
-//         </div>
-//       ) : (
-//         <p>Please log in to access the app.</p>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default App;

@@ -1,38 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: #1f1f1f;
+    color: white;
+}
+
 .App {
-  text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.chat-container {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    max-width: 1000px;
+    width: 100%;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+h1 {
+    margin: 0 0 20px;
+    font-size: 28px; /* Increased font size */
+    font-weight: 600;
+    text-align: center;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 20px;
 }
 
-.App-link {
-  color: #61dafb;
+.message {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px; /* Increased spacing */
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.avatar {
+    margin-top: 4px;
+    width: 40px; /* Adjusted size */
+    height: 40px; /* Adjusted size */
+    border-radius: 50%;
+    background-color: #555;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 15px; /* Increased spacing */
+    font-weight: 500;
+}
+
+.message-content {
+    background-color: #333;
+    border-radius: 15px;
+    padding: 0px 18px; /* Adjusted padding */
+    max-width: 80%;
+    font-size: 18px; /* Increased font size */
+    line-height: 1.5; /* Adjusted line height */
+}
+
+.input-area {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 1000px;
+}
+
+input[type="text"] {
+    flex: 1;
+    padding: 18px; /* Increased padding */
+    border-radius: 15px;
+    border: 1px solid #555;
+    background-color: #333;
+    color: #fff;
+    margin-right: 10px;
+    font-size: 18px; /* Increased font size */
+    max-width: 100%;
+}
+
+button {
+    padding: 18px 35px; /* Adjusted padding */
+    border-radius: 15px;
+    border: none;
+    background-color: #0b93f6;
+    color: white;
+    font-size: 18px; /* Increased font size */
+    font-weight: 500;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0a82e0;
+}
+
+.code-block {
+  position: relative;
+}
+
+.copy-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  background-color: #424242;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
 }
