@@ -118,3 +118,51 @@ button:hover {
   font-size: 12px;
   cursor: pointer;
 }
+
+.model-container {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .model-button {
+    background-color: #555;
+    color: #fff;
+    border: none;
+    border-radius: 15px;
+    padding: 8px 16px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  
+  .button-container {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .download-button {
+    border: none;
+    border-radius: 15px;
+    padding: 8px 16px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+  
+  .excel {
+    background-color: #c2f0c2;
+    color: #333;
+  }
+  
+  .mathcad {
+    background-color: #e0e0d1;
+    color: #333;
+  }
+  
+  .autocad {
+    background-color: #f0c2c2;
+    color: #333;
+  }

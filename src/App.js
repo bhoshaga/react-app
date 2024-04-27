@@ -41,42 +41,64 @@ const App = () => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-
+  
     const userMessage = { text: input, sender: 'User' };
     setMessages(messages => [...messages, userMessage]);
     setInput('');
-
+  
     const response = await fetch('https://api.stru.ai/v1/completion', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         "userID": `${userInfo.email}`,
         "sessionID": "93848bcf-0676-491e-8801-0861585c7d3e",
         "message": input
       }),
       credentials: 'include',
     });
-
+  
     let receivedText = '';
+    let model = '';
+    let buttons = [];
+    setMessages(messages => [...messages, { text: '', sender: 'Assistant', model, buttons }]);
+  
     const reader = response.body.getReader();
     const processText = async ({ done, value }) => {
-      if (done) return;
+      if (done) {
+        return;
+      }
       
       const chunk = new TextDecoder("utf-8").decode(value);
-      receivedText += chunk;
-      setMessages(messages => {
-        const lastMessage = messages[messages.length - 1];
-        if (lastMessage.sender === 'Assistant') {
-          return [
-            ...messages.slice(0, -1),
-            { ...lastMessage, text: lastMessage.text + chunk },
-          ];
-        } else {
-          return [...messages, { text: chunk, sender: 'Assistant' }];  
+      const lines = chunk.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('data:')) {
+          const data = line.slice(5).trim();
+          if (data === '[DONE]') {
+            return;
+          }
+          try {
+            const parsedData = JSON.parse(data);
+            if (parsedData.type === 'text') {
+              receivedText += parsedData.value;
+              setMessages(messages => {
+                const lastMessage = messages[messages.length - 1];
+                return [
+                  ...messages.slice(0, -1),
+                  { ...lastMessage, text: receivedText }
+                ];
+              });
+            } else if (parsedData.type === 'model') {
+              model = parsedData.value;
+            } else if (parsedData.type === 'button') {
+              buttons.push(parsedData);
+            }
+          } catch (error) {
+            console.error('Error parsing server event:', error);
+          }
         }
-      });
+      }
       reader.read().then(processText);
     };
     reader.read().then(processText);
@@ -98,6 +120,11 @@ const App = () => {
 
   const copyToClipboard = (code) => {
     navigator.clipboard.writeText(code);
+  };
+
+  const handleDownload = (fileId) => {
+    // Implement the logic to handle file downloads based on the fileId
+    console.log('Downloading file:', fileId);
   };
 
   if (isLoading) {
@@ -151,6 +178,24 @@ const App = () => {
                     {msg.text}
                   </ReactMarkdown>
                 </div>
+                {msg.model && (
+                  <div className="model-container">
+                    <button className="model-button">{msg.model}</button>
+                  </div>
+                )}
+                {msg.buttons && msg.buttons.length > 0 && (
+                  <div className="button-container">
+                    {msg.buttons.map((button, idx) => (
+                      <button 
+                        key={idx}
+                        className={`download-button ${button.file_id.split('_')[0]}`}
+                        onClick={() => handleDownload(button.file_id)}
+                      >
+                        {button.value}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
             <div ref={messagesEndRef} />
