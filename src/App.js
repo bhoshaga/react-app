@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import './App.css';
 
 const App = () => {
   const [userInfo, setUserInfo] = useState(null);
@@ -95,9 +96,13 @@ const App = () => {
     window.location.href = 'https://api.stru.ai/login';
   };
 
+  const copyToClipboard = (code) => {
+    navigator.clipboard.writeText(code);
+  };
+
   if (isLoading) {
     return (
-      <div>
+      <div className="App">
         <h1>Loading...</h1>
         <progress />
       </div>
@@ -105,55 +110,69 @@ const App = () => {
   }
 
   return (
-    <div className="chat-container">
+    <div className="App">
       {userInfo ? (
-        <>
+        <div className="chat-container">
           <div className="messages">
             {messages.map((msg, index) => (
-              <div key={index} className={`message ${msg.sender}`}>
-                <ReactMarkdown 
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    code({node, inline, className, children, ...props}) {
-                      const match = /language-(\w+)/.exec(className || '')
-                      return !inline && match ? (
-                        <SyntaxHighlighter
-                          children={String(children).replace(/\n$/, '')}
-                          style={vscDarkPlus}
-                          language={match[1]}
-                          PreTag="div"
-                          {...props}
-                        />
-                      ) : (
-                        <code className={className} {...props}>
-                          {children}
-                        </code>
-                      )
-                    }
-                  }}
-                >
-                  {msg.text}
-                </ReactMarkdown>
+              <div key={index} className={`message ${msg.sender === 'User' ? 'user' : 'assistant'}`}>
+                <div className="avatar">{msg.sender === 'User' ? 'U' : 'A'}</div>
+                <div className="message-content">
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      code({node, inline, className, children, ...props}) {
+                        const match = /language-(\w+)/.exec(className || '')
+                        const code = String(children).replace(/\n$/, '');
+                        return !inline && match ? (
+                          <div className="code-block">
+                            <SyntaxHighlighter
+                              children={code}
+                              style={vscDarkPlus}
+                              language={match[1]}
+                              PreTag="div"
+                              {...props}
+                            />
+                            <button 
+                              className="copy-button"
+                              onClick={() => copyToClipboard(code)}
+                            >
+                              Copy
+                            </button>
+                          </div>
+                        ) : (
+                          <code className={className} {...props}>
+                            {children}
+                          </code>
+                        )
+                      }
+                    }}
+                  >
+                    {msg.text}
+                  </ReactMarkdown>
+                </div>
               </div>
             ))}
             <div ref={messagesEndRef} />
           </div>
-          <form onSubmit={handleSendMessage}>
-            <input 
-              type="text"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              placeholder="Type a message..."
-            />
-            <button type="submit">Send</button>
-          </form>
+          <div className="input-area">
+            <form onSubmit={handleSendMessage}>
+              <input 
+                type="text"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                placeholder="Type a message..."
+              />
+              <button type="submit">Send</button>
+            </form>
+          </div>
           <button onClick={handleLogout}>Logout</button>
-        </>
+        </div>
       ) : (
-        <>
+        <div className="login-container">
           <p>Please login to chat.</p>
           <button onClick={handleLogin}>Login with Google</button>  
-        </>
+        </div>
       )}
     </div>
   );
